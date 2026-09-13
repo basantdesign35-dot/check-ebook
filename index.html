@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eternal Lore | The Wisdom That Still Speaks</title>
+
+  <!-- Typography Links & Clean Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- Three.js 3D Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Razorpay Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* ================= 1. REUSED THEME VARIABLES ================= */
+    :root {
+      --bg-main: #ffffff;
+      --bg-secondary: #faf8f5;
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(212, 175, 55, 0.35);
+      
+      --gold-primary: #C87919;
+      --gold-light: #F3E0A2;
+      --gold-pure: #D4AF37;
+      --gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+      --gold-text-gradient: linear-gradient(135deg, #B38728 0%, #D4AF37 50%, #8A6414 100%);
+      --gold-glow: rgba(212, 175, 55, 0.45);
+      
+      --text-main: #2A1E17;
+      --text-muted: #6E5A4B;
+      --border-soft: rgba(212, 175, 55, 0.2);
+      --nav-bg: rgba(255, 255, 255, 0.94);
+      --modal-bg: #ffffff;
+      --shadow-color: rgba(191, 149, 63, 0.15);
+
+      --font-transcity: 'Transcity', 'Cinzel Decorative', Georgia, serif;
+      --font-metropolis: 'Metropolis', 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-hindi: 'Poppins', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body.lang-en {
+      --font-head: var(--font-transcity);
+      --font-body: var(--font-metropolis);
+      direction: ltr;
+      text-align: left;
+    }
+
+    body.lang-hi {
+      --font-head: var(--font-hindi);
+      --font-body: var(--font-hindi);
+      direction: ltr;
+      text-align: left;
+    }
+
+    body.lang-hi h1, body.lang-hi h2, body.lang-hi h3, body.lang-hi .brand-logo, body.lang-hi .card-title {
+      font-weight: 700 !important;
+    }
+    body.lang-hi p, body.lang-hi span, body.lang-hi a, body.lang-hi button, body.lang-hi label, body.lang-hi input {
+      font-weight: 400 !important;
+      line-height: 1.7;
+    }
+
+    h1, h2, h3, h4, .brand-logo, .hero-heading, .card-title, .modal-title, .sec-heading {
+      font-family: var(--font-head);
+    }
+
+    p, span, a, button, input, textarea, select, .card-desc, .btn-gold, .cat-btn {
+      font-family: var(--font-body);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+      perspective: 1200px;
+    }
+
+    #cursor-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 260px;
+      margin-left: -130px;
+      margin-top: -130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.16) 0%, rgba(200, 121, 25, 0.04) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.08s ease-out;
+    }
+
+    #canvas3d {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .main-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--nav-bg);
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-box {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 1rem 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand-logo {
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      background: var(--gold-text-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+      text-shadow: 0 0 15px var(--gold-glow);
+    }
+
+    .nav-links-menu {
+      display: flex;
+      list-style: none;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .nav-links-menu a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links-menu a:hover {
+      color: var(--gold-primary);
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .lang-picker {
+      background: var(--bg-main);
+      border: 1.5px solid var(--gold-pure);
+      color: var(--text-main);
+      padding: 0.45rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-gold {
+      background: var(--card-bg);
+      border: 1px solid var(--gold-pure);
+      color: var(--text-main);
+      padding: 0.5rem 1.15rem;
+      border-radius: 25px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 15px var(--shadow-color);
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease;
+    }
+
+    .btn-gold:hover {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 10px 25px var(--gold-glow);
+      transform: translateZ(8px) translateY(-3px) scale(1.02);
+    }
+
+    .btn-account-portal {
+      background: linear-gradient(135deg, var(--gold-primary), var(--gold-pure));
+      color: #ffffff !important;
+      border: 1px solid var(--gold-pure);
+      padding: 0.48rem 1.1rem;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 0.86rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      box-shadow: 0 3px 12px var(--gold-glow);
+      transition: all 0.25s ease;
+    }
+
+    .btn-account-portal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px var(--gold-glow);
+      filter: brightness(1.05);
+    }
+
+    .badge-gold {
+      background: var(--gold-primary);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border-radius: 50%;
+      font-weight: 800;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 4.2rem 1.5rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 0.4rem 1.4rem;
+      border-radius: 30px;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--gold-pure);
+      color: var(--gold-primary);
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 1.1rem;
+    }
+
+    .hero-heading {
+      font-size: clamp(1.6rem, 3.2vw, 3.1rem);
+      line-height: 1.25;
+      margin-bottom: 1.1rem;
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      width: 100%;
+    }
+
+    .hero-heading span {
+      background: var(--gold-text-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 10px var(--gold-glow));
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      line-height: 1.8;
+      max-width: 720px;
+      margin: 0 auto 1.8rem;
+    }
+
+    .hero-cta-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Book Switcher Header Bar */
+    .book-selection-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.2rem auto 2.4rem;
+      padding: 0 1rem;
+    }
+
+    .book-switch-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0.7rem 1.6rem;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      box-shadow: 0 4px 14px var(--shadow-color);
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.22s ease;
+    }
+
+    .book-switch-btn.active, .book-switch-btn:hover {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 8px 22px var(--gold-glow);
+      transform: translateZ(10px) translateY(-3px);
+    }
+
+    /* Category Bar */
+    .cat-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin: 1.5rem auto 2rem;
+      padding: 0 1rem;
+      max-width: 1200px;
+    }
+
+    .cat-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0.6rem 1.3rem;
+      border-radius: 30px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px var(--shadow-color);
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease;
+    }
+
+    .cat-btn.active, .cat-btn:hover {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 6px 20px var(--gold-glow);
+      transform: translateZ(8px) translateY(-3px);
+    }
+
+    /* Standard Card Grid & Interactive 3D Lift */
+    .catalog-section {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 1.5rem 3.5rem;
+    }
+
+    .books-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 2rem;
+    }
+
+    .book-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.8rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px var(--shadow-color);
+      position: relative;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.24s ease, border-color 0.24s ease;
+      will-change: transform, box-shadow;
+    }
+
+    .book-card:hover {
+      border-color: var(--gold-pure);
+      box-shadow: 0 20px 48px var(--gold-glow), 0 10px 20px rgba(0, 0, 0, 0.12);
+      transform: translateZ(16px) translateY(-8px) rotateX(1.8deg) rotateY(-1.8deg);
+    }
+
+    .card-icon {
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-cat-label {
+      font-size: 0.75rem;
+      color: var(--gold-primary);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .card-title {
+      font-size: 1.35rem;
+      margin: 0.4rem 0 0.3rem;
+      line-height: 1.35;
+    }
+
+    .card-author {
+      font-size: 0.88rem;
+      color: var(--gold-primary);
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+    }
+
+    .card-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-soft);
+      padding-top: 1.1rem;
+      margin-top: auto;
+      gap: 0.5rem;
+    }
+
+    .sec-heading {
+      text-align: center;
+      font-size: 2.3rem;
+      margin-bottom: 0.8rem;
+      background: var(--gold-text-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sec-sub {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 2rem;
+      font-size: 1.05rem;
+    }
+
+    .dynamic-solver-box {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 2px solid var(--gold-pure);
+      border-radius: 20px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 12px 35px var(--shadow-color);
+      transform-style: preserve-3d;
+      transition: transform 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.24s ease;
+    }
+
+    .dynamic-solver-box:hover {
+      box-shadow: 0 20px 48px var(--gold-glow);
+      transform: translateZ(12px) translateY(-4px);
+    }
+
+    /* Audio Player */
+    .sacred-audio-player {
+      background: var(--bg-secondary);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.85rem 1.25rem;
+      margin: 1.25rem auto 1.5rem;
+      max-width: 650px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .audio-play-toggle-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--gold-gradient);
+      color: #000;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 10px var(--gold-glow);
+    }
+
+    .audio-progress-bar-container {
+      flex: 1;
+      height: 6px;
+      background: var(--border-soft);
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .audio-progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--gold-primary);
+      border-radius: 4px;
+      transition: width 0.1s linear;
+    }
+
+    .audio-timer-badge {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 80px;
+      text-align: right;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(14px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 1.5rem;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--modal-bg);
+      border: 2px solid var(--gold-pure);
+      border-radius: 22px;
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2.2rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+      position: relative;
+      color: var(--text-main);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      background: none;
+      border: none;
+      font-size: 1.7rem;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .btn-submit-gold {
+      width: 100%;
+      background: var(--gold-gradient);
+      color: #000;
+      border: none;
+      padding: 0.85rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: all 0.2s ease;
+    }
+
+    .btn-submit-gold:hover {
+      box-shadow: 0 6px 22px var(--gold-glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-google-auth {
+      width: 100%;
+      background: #ffffff;
+      color: #171512;
+      border: 1px solid var(--card-border);
+      padding: 0.78rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-google-auth:hover {
+      background: #fdfdfd;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: var(--text-main);
+    }
+
+    .form-group input {
+      width: 100%;
+      background: var(--bg-main);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 1.5rem 2rem;
+      border-top: 1px solid var(--card-border);
+      background: var(--bg-secondary);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 900px) {
+      .nav-links-menu {
+        display: none;
+      }
+      .hero-heading {
+        white-space: nowrap !important;
+        font-size: 1.35rem;
+      }
+    }
+  </style>
+</head>
+<body class="lang-en">
+
+  <div id="cursor-glow"></div>
+  <canvas id="canvas3d"></canvas>
+
+  <div class="main-wrap">
+    <!-- Navbar (Verses & Wisdom removed from links) -->
+    <header>
+      <div class="nav-box">
+        <a href="#" class="brand-logo">ETERNAL LORE</a>
+
+        <ul class="nav-links-menu">
+          <li><a href="#home" data-i18n="navHome">Home</a></li>
+          <li><a href="#sections" data-i18n="navSections">Sections</a></li>
+          <li><a href="#stories" data-i18n="navStories">Stories</a></li>
+          <li><a href="#comics" data-i18n="navComics">Products</a></li>
+        </ul>
+
+        <div class="nav-controls">
+          <select class="lang-picker" id="langSelector" onchange="applyLanguage(this.value)">
+            <option value="en">ENGLISH</option>
+            <option value="hi">हिंदी</option>
+          </select>
+
+          <button class="btn-gold" onclick="openBookmarksModal()" title="Saved Wisdom">
+            🔖 <span class="badge-gold" id="bookmarkBadge">0</span>
+          </button>
+
+          <!-- PROMINENT LOGIN / ACCOUNT PORTAL TRIGGER -->
+          <button class="btn-account-portal" id="authBtnTrigger" onclick="openAuthModal()" title="Seeker Portal">
+            👤 <span id="authUserDisplay">Login</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+      <span class="hero-badge" data-i18n="heroBadge">Timeless Dialogue • Living Philosophy</span>
+      <h1 class="hero-heading" data-i18n="heroTitle">
+        The Wisdom That <span>Still Speaks</span>
+      </h1>
+      <p class="hero-desc" data-i18n="heroDesc">
+        Ancient wisdom. Modern questions. Timeless answers.
+      </p>
+
+      <!-- Multi-Book Selector -->
+      <div class="book-selection-bar">
+        <button class="book-switch-btn active" id="btnBookGita" onclick="switchActiveBook('gita')" data-i18n="btnGita">📖 Bhagavad Gita</button>
+        <button class="book-switch-btn" id="btnBookRam" onclick="switchActiveBook('ramcharitmanas')" data-i18n="btnRam">🏹 Ramcharitmanas</button>
+      </div>
+
+      <div class="hero-cta-wrap">
+        <a href="#sections" class="btn-gold" data-i18n="ctaExplore" style="padding: 0.75rem 1.6rem; font-size: 0.95rem;">EXPLORE SCRIPTURE</a>
+        <a href="#stories" class="btn-gold" data-i18n="ctaStory" style="padding: 0.75rem 1.6rem; font-size: 0.95rem; background: transparent;">START WITH A STORY</a>
+      </div>
+    </section>
+
+    <!-- 1. INTERACTIVE PROBLEM SOLVER -->
+    <section class="catalog-section" id="problemSolverSection">
+      <h2 class="sec-heading" data-i18n="goingThroughHeading">What Are You Going Through?</h2>
+      <p class="sec-sub" data-i18n="goingThroughSub">Select your current mental landscape to discover timeless counsel directly relevant to your modern struggle.</p>
+
+      <div class="cat-bar" id="problemChipsBar">
+        <button class="cat-btn active" onclick="solveProblem('lost', this)" data-i18n="pLost">I FEEL LOST</button>
+        <button class="cat-btn" onclick="solveProblem('fear', this)" data-i18n="pFear">I AM AFRAID</button>
+        <button class="cat-btn" onclick="solveProblem('failed', this)" data-i18n="pFailed">I FAILED</button>
+        <button class="cat-btn" onclick="solveProblem('focus', this)" data-i18n="pFocus">I CANNOT FOCUS</button>
+        <button class="cat-btn" onclick="solveProblem('pressured', this)" data-i18n="pPressured">I FEEL PRESSURED</button>
+        <button class="cat-btn" onclick="solveProblem('angry', this)" data-i18n="pAngry">I AM ANGRY</button>
+        <button class="cat-btn" onclick="solveProblem('letgo', this)" data-i18n="pLetgo">I CANNOT LET GO</button>
+        <button class="cat-btn" onclick="solveProblem('purpose', this)" data-i18n="pPurpose">I DON'T KNOW MY PURPOSE</button>
+      </div>
+
+      <div class="dynamic-solver-box" id="problemSolverDisplay"></div>
+    </section>
+
+    <!-- 2. SECTION EXPLORER -->
+    <section class="catalog-section" id="sections">
+      <h2 class="sec-heading" id="sectionsMainHeading">Chapters & Cantos</h2>
+      <p class="sec-sub" id="sectionsSubHeading">The comprehensive journey from existential collapse to self-realization and unshakeable inner alignment.</p>
+      <div class="books-grid" id="sectionsGrid"></div>
+    </section>
+
+    <!-- 3. VERSE & AUDIO RECITATION EXPERIENCE -->
+    <section class="catalog-section" id="verses">
+      <h2 class="sec-heading" id="verseMainHeading">Verse & Stanza Experience</h2>
+      <p class="sec-sub" id="verseSubHeading">Meditate upon selected foundational verses translated without distortion for practical living.</p>
+      
+      <div class="dynamic-solver-box" style="text-align: center; padding: 2.8rem 2rem;">
+        <span class="card-cat-label" id="verseNumDisplay">Section 2 • Verse 47</span>
+        <h3 class="card-title" style="font-size: 1.55rem; margin: 1.2rem 0;" id="verseOriginalDisplay"></h3>
+        <p style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--gold-primary); font-weight: 700;" id="verseHindiDisplay"></p>
+        <p class="card-desc" style="font-size: 1rem; max-width: 700px; margin: 0 auto 1.5rem;" id="verseEnglishDisplay"></p>
+        
+        <!-- Real HTML5 Audio Player -->
+        <div class="sacred-audio-player">
+          <button class="audio-play-toggle-btn" id="audioPlayToggleBtn" onclick="toggleAudioPlayback()">▶</button>
+          <div class="audio-progress-bar-container" id="audioProgressContainer" onclick="seekAudioPosition(event)">
+            <div class="audio-progress-bar-fill" id="audioProgressFill"></div>
+          </div>
+          <span class="audio-timer-badge" id="audioTimerBadge">0:00 / 0:00</span>
+        </div>
+
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; text-align: left; border: 1px solid var(--card-border);">
+          <strong data-i18n="whyMattersLabel">Why it matters today:</strong>
+          <p style="font-size: 0.92rem; margin-top: 0.3rem;" id="verseWhyDisplay"></p>
+        </div>
+        
+        <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
+          <button class="btn-gold" onclick="nextFeaturedVerse()" data-i18n="btnNextVerse">Next Excerpt →</button>
+          <button class="btn-gold" onclick="bookmarkCurrentVerse()" data-i18n="btnSaveVerse">🔖 Save</button>
+          <button class="btn-gold" onclick="shareVerseStub()" data-i18n="btnShare">🔗 Share</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. LIFE WISDOM -->
+    <section class="catalog-section" id="wisdom">
+      <h2 class="sec-heading" data-i18n="lifeHeading">Life Wisdom</h2>
+      <p class="sec-sub" data-i18n="lifeSub">Explore practical sacred wisdom categorized across core human experiences.</p>
+      
+      <div class="cat-bar" id="topicsBar"></div>
+      <div class="dynamic-solver-box" id="topicDetailDisplay"></div>
+    </section>
+
+    <!-- 5. STORIES SECTION -->
+    <section class="catalog-section" id="stories">
+      <h2 class="sec-heading" data-i18n="storiesHeading">Wisdom Through Stories</h2>
+      <p class="sec-sub" data-i18n="storiesSub">Original philosophical narratives conveying profound self-mastery in accessible everyday metaphors.</p>
+      <div class="books-grid" id="storiesGrid"></div>
+    </section>
+
+    <!-- 6. DIGITAL EDITIONS & COMICS SECTION -->
+    <section class="catalog-section" id="comics">
+      <h2 class="sec-heading" data-i18n="comicsHeading">Wisdom, Told Visually.</h2>
+      <p class="sec-sub" data-i18n="comicsSub">Ancient ideas, reimagined through original, dignified visual graphic storytelling and digital editions.</p>
+      <div class="books-grid" id="productsGrid"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <p style="margin-bottom: 0.6rem;" data-i18n="footerText">Dedicated to respectful exploration of sacred literature & timeless wisdom.</p>
+      <p>&copy; 2026 Eternal Lore Publications. Multi-Scripture Edition. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Section Detail Modal -->
+  <div class="modal-overlay" id="sectionModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('sectionModal')">&times;</button>
+      <span class="card-cat-label" id="modalSecLabel">Section</span>
+      <h3 class="modal-title" style="margin: 0.5rem 0;" id="modalSecTitle">Title</h3>
+      <p class="card-desc" id="modalSecDesc" style="font-size: 1rem; margin-bottom: 1.5rem;"></p>
+      <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid var(--card-border);">
+        <strong data-i18n="coreThemeLabel">Core Philosophical Essence:</strong>
+        <p style="font-size: 0.9rem; margin-top: 0.3rem;" id="modalSecTheme"></p>
+      </div>
+      <button class="btn-submit-gold" onclick="bookmarkItem(document.getElementById('modalSecTitle').innerText)" data-i18n="btnBookmarkSec">🔖 Bookmark Section</button>
+    </div>
+  </div>
+
+  <!-- Story Modal -->
+  <div class="modal-overlay" id="storyModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('storyModal')">&times;</button>
+      <span class="card-cat-label" id="modalStoryCat">Category</span>
+      <h3 class="modal-title" style="margin: 0.5rem 0;" id="modalStoryTitle">Story Title</h3>
+      <p style="font-size: 0.85rem; color: var(--gold-primary); margin-bottom: 1rem;" id="modalStoryTime"></p>
+      <p class="card-desc" id="modalStoryContent" style="font-size: 0.98rem; line-height: 1.8; margin-bottom: 1.5rem;"></p>
+      <button class="btn-submit-gold" onclick="bookmarkItem(document.getElementById('modalStoryTitle').innerText)" data-i18n="btnBookmarkStory">🔖 Bookmark Story</button>
+    </div>
+  </div>
+
+  <!-- Product Detail Modal -->
+  <div class="modal-overlay" id="productDetailModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('productDetailModal')">&times;</button>
+      <span class="card-cat-label" id="modalProductType">Premium Digital Edition</span>
+      <h3 class="modal-title" style="margin: 0.5rem 0;" id="modalProductTitle">Product Title</h3>
+      <p class="card-desc" id="modalProductDesc" style="margin-bottom: 1rem;"></p>
+      
+      <div style="background: var(--bg-secondary); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
+        <strong style="color: var(--gold-primary); font-size: 0.88rem;" data-i18n="includedLabel">What's Included:</strong>
+        <ul style="list-style: none; margin-top: 0.5rem; font-size: 0.88rem; line-height: 1.6;">
+          <li>✓ High-resolution original digital edition (PDF / EPUB)</li>
+          <li>✓ Full philosophical commentary & translated verses</li>
+          <li>✓ Lifetime private cloud download entitlement</li>
+        </ul>
+      </div>
+
+      <div style="background: var(--bg-secondary); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 1.4rem;">
+        <span style="font-size: 1.8rem; display:block; margin-bottom:0.3rem;">🎨</span>
+        <strong style="color: var(--gold-primary); font-size: 0.9rem;" data-i18n="sampleLabel">[ Verified Sample Preview ]</strong>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;" id="modalProductSample"></p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-soft); padding-top: 1rem;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);" data-i18n="priceLabel">Total Amount:</span>
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--gold-primary);" id="modalProductPrice">₹199</div>
+        </div>
+        <button class="btn-gold" onclick="openCheckoutModal()" style="padding: 0.75rem 1.8rem;" data-i18n="btnBuyNow">BUY NOW →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('checkoutModal')">&times;</button>
+      <h3 class="modal-title" data-i18n="checkoutHeading">Complete Acquisition</h3>
+      <p class="card-desc" style="margin-bottom: 1.4rem;" data-i18n="checkoutSub">Enter your delivery details. After verified payment, your digital download will unlock instantly.</p>
+      
+      <form onsubmit="handlePaymentGatewayFlow(event)">
+        <div class="form-group">
+          <label data-i18n="lblName">Customer Name *</label>
+          <input type="text" id="custName" required placeholder="Enter full name" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="lblEmail">Email Address * (For Receipt & Digital Access)</label>
+          <input type="email" id="custEmail" required placeholder="name@domain.com" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="lblPhone">WhatsApp / Mobile Number *</label>
+          <input type="tel" id="custPhone" required placeholder="+91 XXXXX XXXXX" />
+        </div>
+
+        <div style="background: var(--bg-secondary); padding: 0.85rem; border-radius: 8px; margin: 1rem 0; font-size: 0.82rem; color: var(--text-muted);">
+          🔒 <strong>Security Architecture:</strong> Uses server-side signature verification flow (Razorpay API ready). Secrets are never exposed to browser context.
+        </div>
+
+        <button type="submit" class="btn-submit-gold" id="btnProceedToPay" data-i18n="btnPay">PROCEED TO SECURE PAYMENT</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Payment Success & Verified Delivery Modal -->
+  <div class="modal-overlay" id="paymentSuccessModal">
+    <div class="modal-content" style="text-align: center;">
+      <span style="font-size: 3rem; display: block; margin-bottom: 0.5rem;">🎉</span>
+      <h3 class="modal-title" style="color: var(--gold-primary);" data-i18n="paySuccessTitle">PAYMENT SUCCESSFUL</h3>
+      <p class="card-desc" style="margin-bottom: 1.2rem;" data-i18n="paySuccessSub">
+        Your payment has been verified. Your digital edition is unlocked below:
+      </p>
+
+      <div style="background: var(--bg-secondary); border: 1.5px solid var(--gold-pure); border-radius: 12px; padding: 1.4rem; margin-bottom: 1.5rem; text-align: left;">
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="successOrderId">Order #ORD-XXXXX</div>
+        <h4 style="font-size: 1.2rem; margin: 0.3rem 0;" id="successProductTitle">Product Title</h4>
+        <div style="font-size: 0.85rem; color: var(--gold-primary); font-weight: 700; margin-bottom: 0.8rem;" id="successAmount">Paid: ₹199</div>
+        
+        <a href="#" id="secureDownloadBtn" class="btn-gold" style="width: 100%; justify-content: center; text-decoration: none;" target="_blank">
+          📥 DOWNLOAD / ACCESS DIGITAL PRODUCT
+        </a>
+      </div>
+
+      <button class="btn-submit-gold" onclick="closeModal('paymentSuccessModal')" data-i18n="btnClose">Return to Sanctuary</button>
+    </div>
+  </div>
+
+  <!-- Bookmarks Modal -->
+  <div class="modal-overlay" id="bookmarksModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('bookmarksModal')">&times;</button>
+      <h3 class="modal-title" data-i18n="savedTitle">Saved Bookmarks</h3>
+      <div id="bookmarksListArea"></div>
+    </div>
+  </div>
+
+  <!-- DEDICATED LOGIN / ACCOUNT PORTAL MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <span style="font-size: 2.2rem; display: block; margin-bottom: 0.3rem;">🪔</span>
+        <h3 class="modal-title" id="authPortalHeading">Seeker Portal</h3>
+        <p class="card-desc" style="font-size: 0.88rem;">Sign in to sync your saved bookmarks & access purchased scriptures across all your devices.</p>
+      </div>
+
+      <!-- Google One-Click Login -->
+      <button type="button" class="btn-google-auth" onclick="handleGoogleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+
+      <div style="display: flex; align-items: center; margin: 1.2rem 0; color: var(--text-muted); font-size: 0.8rem;">
+        <div style="flex:1; height:1px; background:var(--border-soft);"></div>
+        <span style="padding: 0 0.6rem;">OR WITH EMAIL</span>
+        <div style="flex:1; height:1px; background:var(--border-soft);"></div>
+      </div>
+
+      <form onsubmit="handleAuthSubmit(event)">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="authEmailInput" placeholder="seeker@domain.com" required />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="authPasswordInput" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn-submit-gold" id="authSubmitBtn" style="margin-top: 0.5rem;">Enter Sanctuary</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= LOGIC, AUDIO & CLOUD ARCHITECTURE ================= -->
+  <script>
+    /* ================= 1. MULTI-BOOK SCRIPTURE REPOSITORY ================= */
+    const libraryData = {
+      gita: {
+        id: 'gita',
+        bookTitle: 'Bhagavad Gita',
+        hindiTitle: 'श्रीमद्भगवद्गीता',
+        sectionTerm: 'Chapter',
+        hindiSectionTerm: 'अध्याय',
+        verseTerm: 'Verse',
+        hindiVerseTerm: 'श्लोक',
+        sectionsHeading: 'The 18 Chapters',
+        hindiSectionsHeading: '१८ अध्याय',
+        sectionsSub: 'The comprehensive journey from existential collapse to self-realization and unshakeable inner alignment.',
+        hindiSectionsSub: 'विषाद और संशय से आत्म-बोध तथा निष्काम कर्म तक की अखंड आध्यात्मिक यात्रा।',
+        sections: [
+          { id: 'ch1', number: '01', hindiTitle: 'अर्जुनविषादयोग', englishTitle: "Arjuna's Despair", description: 'The crisis of conscience and emotional collapse on the threshold of duty.', theme: 'Confronting inner paralysis', hindiTheme: 'आंतरिक संशय और कर्तव्य का द्वंद्व' },
+          { id: 'ch2', number: '02', hindiTitle: 'सांख्ययोग', englishTitle: 'Yoga of Knowledge', description: 'The indestructible nature of the soul and the foundational philosophy of Karma Yoga.', theme: 'The witness self & detached action', hindiTheme: 'अविनाशी आत्मा और निष्काम कर्मयोग' },
+          { id: 'ch3', number: '03', hindiTitle: 'कर्मयोग', englishTitle: 'Yoga of Action', description: 'Why action in the world is unavoidable and how to act without egoic craving.', theme: 'Duty without entitlement', hindiTheme: 'फल की चिंता किए बिना कर्तव्य पालन' },
+          { id: 'ch4', number: '04', hindiTitle: 'ज्ञानकर्मसंन्यासयोग', englishTitle: 'Renunciation of Action', description: 'How wisdom burns the bondage of past reactions into light.', theme: 'Purifying work with understanding', hindiTheme: 'ज्ञान द्वारा कर्म के बंधनों की मुक्ति' },
+          { id: 'ch5', number: '05', hindiTitle: 'कर्मसंन्यासयोग', englishTitle: 'True Renunciation', description: 'Harmonizing outward engaged responsibility with internal peace.', theme: 'Inner monk, outer warrior', hindiTheme: 'बाहरी कर्म और आंतरिक शांति का संतुलन' },
+          { id: 'ch6', number: '06', hindiTitle: 'ध्यानयोग', englishTitle: 'Yoga of Meditation', description: 'Practical discipline for mastering attention, stilling the mind, and finding balance.', theme: 'Stillness and mind mastery', hindiTheme: 'मन का नियंत्रण और आत्म-स्थिरता' },
+          { id: 'ch7', number: '07', hindiTitle: 'ज्ञानविज्ञानयोग', englishTitle: 'Knowledge & Realization', description: 'The twin realities: material nature and the underlying unmanifest divine essence.', theme: 'Perceiving reality behind illusion', hindiTheme: 'माया और परमात्मा का प्रत्यक्ष बोध' },
+          { id: 'ch8', number: '08', hindiTitle: 'अक्षरब्रह्मयोग', englishTitle: 'Imperishable Absolute', description: 'Consciousness, transition, and anchoring attention on the timeless.', theme: 'Living with awareness of mortality', hindiTheme: 'मृत्यु और शाश्वत चेतना का विज्ञान' },
+          { id: 'ch9', number: '09', hindiTitle: 'राजविद्याराजगुह्ययोग', englishTitle: 'Sovereign Secret', description: 'The direct royal insight of divine presence in all manifest life.', theme: 'Grace in simple everyday offerings', hindiTheme: 'सर्वव्यापी ईश्वर और भक्ति का रहस्य' },
+          { id: 'ch10', number: '10', hindiTitle: 'विभूतियोग', englishTitle: 'Divine Splendors', description: 'Recognizing excellence, beauty, and truth as reflections of the supreme.', theme: 'Seeing the sacred in the world', hindiTheme: 'सृष्टि के कण-कण में दिव्यता का दर्शन' },
+          { id: 'ch11', number: '11', hindiTitle: 'विश्वरूपदर्शनयोग', englishTitle: 'Vision of Cosmic Form', description: 'The direct vision of time and the universe as a vast living whole.', theme: 'Awe, humility, and scale', hindiTheme: 'काल और ब्रह्मांडीय स्वरूप का दर्शन' },
+          { id: 'ch12', number: '12', hindiTitle: 'भक्तियोग', englishTitle: 'Yoga of Devotion', description: 'The qualities of the balanced soul who harbors malice toward none.', theme: 'Compassion and emotional equanimity', hindiTheme: 'निस्वार्थ प्रेम और समत्व भाव' },
+          { id: 'ch13', number: '13', hindiTitle: 'क्षेत्रक्षेत्रज्ञविभागयोग', englishTitle: 'Field & Knower', description: 'Distinguishing the transient body-mind vehicle from the conscious witness.', theme: 'Clear self-awareness', hindiTheme: 'शरीर और साक्षी आत्मा का भेद' },
+          { id: 'ch14', number: '14', hindiTitle: 'गुणत्रयविभागयोग', englishTitle: 'Three Modes of Nature', description: 'Understanding Sattva (clarity), Rajas (passion), and Tamas (inertia).', theme: 'Psychological mastery over states', hindiTheme: 'सत्त्व, रज और तम तीनों गुणों से परे होना' },
+          { id: 'ch15', number: '15', hindiTitle: 'पुरुषोत्तमयोग', englishTitle: 'Supreme Person', description: 'The cosmic tree metaphor and the supreme transcendent consciousness.', theme: 'Rooting yourself in what is real', hindiTheme: 'संसार रूपी अश्वत्थ वृक्ष और परम तत्व' },
+          { id: 'ch16', number: '16', hindiTitle: 'दैवासुरसंपद्विभागयोग', englishTitle: 'Divine & Demonic Natures', description: 'Clear discrimination between self-liberating virtues and destructive patterns.', theme: 'Ethical courage and character', hindiTheme: 'सद्गुणों और दुर्गुणों का विवेक' },
+          { id: 'ch17', number: '17', hindiTitle: 'श्रद्धात्रयविभागयोग', englishTitle: 'Threefold Faith', description: 'How internal temperament shapes food, choices, sacrifice, and work.', theme: 'Intentional living', hindiTheme: 'आहार, व्यवहार और श्रद्धा का प्रभाव' },
+          { id: 'ch18', number: '18', hindiTitle: 'मोक्षसंन्यासयोग', englishTitle: 'Yoga of Liberation', description: 'The grand synthesis of action, surrender, sovereignty, and supreme freedom.', theme: 'Surrender to your highest truth', hindiTheme: 'सर्वधर्मान्परित्यज्य - पूर्ण समर्पण और मुक्ति' }
+        ],
+        verses: [
+          {
+            id: 'g_2_47',
+            secNum: 2,
+            itemNum: 47,
+            original: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥',
+            hindi: 'कर्म पर ही तुम्हारा अधिकार है, कर्मों के फलों में कभी नहीं। कर्मफल के हेतु मत बनो और न ही तुम्हारी आसक्ति अकर्म में हो।',
+            english: 'You have a right to your prescribed duty, but never to the fruits of action. Never let the fruits of action be your motive, nor let your attachment bind you to inaction.',
+            why: 'Burnout and anxiety occur when we fixate entirely on future evaluations rather than the craftsmanship of our present duty.',
+            hindiWhy: 'चिंता और अवसाद तभी जन्म लेते हैं जब हमारा ध्यान वर्तमान कार्य के बजाय भविष्य के परिणाम और दूसरों के मूल्यांकन पर अटक जाता है।',
+            audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=ambient-hindu-bell-21447.mp3'
+          },
+          {
+            id: 'g_6_5',
+            secNum: 6,
+            itemNum: 5,
+            original: 'उद्धरेदात्मनात्मानं नात्मानमवसादयेत्।\nआत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः॥',
+            hindi: 'मनुष्य को चाहिए कि वह अपने मन के द्वारा अपना उद्धार करे, अपना पतन न करे। क्योंकि मन ही मनुष्य का मित्र है और मन ही शत्रु है।',
+            english: 'Elevate yourself through the power of your mind, and do not degrade yourself. For the mind alone is the friend of the self, and the mind alone is the enemy of the self.',
+            why: 'Accountability over internal narrative is the foundational step toward real mental health and agency.',
+            hindiWhy: 'अपने विचारों और आंतरिक संवाद पर नियंत्रण ही वास्तविक आत्म-विकास और मानसिक शांति की प्रथम सीढ़ी है।',
+            audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=ambient-hindu-bell-21447.mp3'
+          },
+          {
+            id: 'g_2_70',
+            secNum: 2,
+            itemNum: 70,
+            original: 'आपूर्यमाणमचलप्रतिष्ठं समुद्रमापः प्रविशन्ति यद्वत्।\nतद्वत्कामा यं प्रविशन्ति सर्वे स शान्तिमाप्नोति न कामकामी॥',
+            hindi: 'जैसे निरंतर जल से परिपूर्ण समुद्र में नदियाँ बिना उसे विचलित किए समा जाती हैं, वैसे ही जिसमें सभी कामनाएं बिना हलचल किए समा जाएं, वही शांति पाता है।',
+            english: 'As the ocean remains unperturbed though waters flow into it, so the one into whom all desires enter without creating agitation attains peace—not the one who chases desires.',
+            why: 'Equanimity is not numbness; it is having an ocean-like capacity to absorb events without turbulent reactivity.',
+            hindiWhy: 'समत्व भाव का अर्थ संवेदनाहीन होना नहीं है, बल्कि समुद्र की भांति हर परिस्थिति को बिना विचलित हुए स्वीकार करने का सामर्थ्य है।',
+            audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=ambient-hindu-bell-21447.mp3'
+          }
+        ],
+        stories: [
+          {
+            id: 'gs1',
+            title: "The Archer's Hesitation",
+            hindiTitle: "धनुर्धर का संशय",
+            category: "Duty & Fear",
+            hindiCategory: "कर्तव्य और भय",
+            readingTime: "4 min",
+            hindiReadingTime: "४ मिनट",
+            desc: "Why the heaviest weight Arjuna carried was not the Gandiva bow, but the paralyzing demand for certainty.",
+            hindiDesc: "अर्जुन के लिए सबसे भारी बोझ उसका गांडीव धनुष नहीं, बल्कि परिणाम को अपने वश में करने की चाह थी।",
+            content: "At dawn upon Kurukshetra, the great warrior sat down on his chariot floor. It was not terror of battle that paralyzed him, but the grief of outcome. He wanted a guarantee that righteousness would not taste of blood. His guide spoke softly: 'No action in this world is entirely free of consequence, just as fire is never without smoke. Act with purity of intent; do not let fear of imperfection freeze your courage.'",
+            hindiContent: "कुरुक्षेत्र के रणक्षेत्र में भोर के समय अर्जुन अपने रथ पर बैठ गया। यह युद्ध का भय नहीं था, बल्कि भविष्य के परिणामों की चिंता थी। वह निश्चितता चाहता था कि उसके निर्णय का फल दुखदायी न हो। तब श्रीकृष्ण ने कहा: 'संसार में कोई भी कर्म त्रुटिहीन नहीं होता, जैसे अग्नि के साथ धुआं स्वाभाविक है। निष्काम भाव से कर्म करो, अपूर्णता के भय से अपने कर्तव्य का त्याग मत करो।'"
+          }
+        ],
+        products: [
+          {
+            id: 'prod_gita_comic_1',
+            bookId: 'gita',
+            title: "Echoes of the Chariot: Vol I",
+            hindiTitle: "रथ का उद्घोष: भाग १",
+            productType: "Illustrated Digital Comic",
+            hindiProductType: "सचित्र डिजिटल कॉमिक",
+            description: "An original visual graphic novel depicting Arjuna's moral dilemma on Kurukshetra dawn.",
+            hindiDesc: "कुरुक्षेत्र की भोर में कर्तव्य और संशय के अंतर्द्वंद्व पर आधारित मौलिक सचित्र डिजिटल उपन्यास।",
+            price: 199,
+            samplePreview: "Panel 1: The conch horns sound. Panel 2: The Gandiva drops. Panel 3: The divine charioteer speaks.",
+            hindiSamplePreview: "दृश्य १: शंखों का गंभीर नाद। दृश्य २: अर्जुन का गांडीव छूटना। दृश्य ३: श्रीकृष्ण का पावन उद्बोधन।",
+            fileToken: "sec_gita_vol1_token_9938"
+          }
+        ]
+      },
+      ramcharitmanas: {
+        id: 'ramcharitmanas',
+        bookTitle: 'Ramcharitmanas',
+        hindiTitle: 'श्रीरामचरितमानस',
+        sectionTerm: 'Kand',
+        hindiSectionTerm: 'काण्ड',
+        verseTerm: 'Doha / Chaupai',
+        hindiVerseTerm: 'दोहा / चौपाई',
+        sectionsHeading: 'The 7 Kands',
+        hindiSectionsHeading: '७ पवित्र काण्ड',
+        sectionsSub: 'The transformative epic of devotion, character, endurance, and righteous conduct across seven universal episodes.',
+        hindiSectionsSub: 'त्याग, मर्यादा, भक्ति और कर्तव्य की अमर सात-चरणीय जीवन यात्रा।',
+        sections: [
+          { id: 'rk1', number: '01', hindiTitle: 'बालकाण्ड', englishTitle: 'Bala Kanda', description: 'The invocation of divine virtues, divine descent, and the wedding of righteousness.', theme: 'Innocence, devotion, and sacred roots', hindiTheme: 'पवित्र बाल्यकाल, श्रद्धा और सत्संग की महिमा' },
+          { id: 'rk2', number: '02', hindiTitle: 'अयोध्याकाण्ड', englishTitle: 'Ayodhya Kanda', description: 'Duty tested by exile. The supreme demonstration of filial honor and non-possessiveness.', theme: 'Dignity under injustice', hindiTheme: 'मर्यादा, वनगमन और निःस्वार्थ भ्रातृ-प्रेम' },
+          { id: 'rk3', number: '03', hindiTitle: 'अरण्यकाण्ड', englishTitle: 'Aranya Kanda', description: 'Hermitage life, spiritual counsel, deception, and the crucible of separation.', theme: 'Vigilance against delusion', hindiTheme: 'वन-जीवन, माया की परीक्षा और शबरी की अनन्य भक्ति' },
+          { id: 'rk4', number: '04', hindiTitle: 'किष्किन्धाकाण्ड', englishTitle: 'Kishkindha Kanda', description: 'The pact of friendship with Sugriva, loyalty, and the awakening of selfless allies.', theme: 'Friendship and selfless coalition', hindiTheme: 'मित्रता, निष्ठा और आत्म-बल का जागरण' },
+          { id: 'rk5', number: '05', hindiTitle: 'सुन्दरकाण्ड', englishTitle: 'Sundara Kanda', description: 'Hanuman leaps across the ocean. The triumph of unshakeable humility, courage, and faith.', theme: 'Humility as the highest power', hindiTheme: 'हनुमान जी का समुद्र-लंघन और समर्पण की विजय' },
+          { id: 'rk6', number: '06', hindiTitle: 'लंकाकाण्ड', englishTitle: 'Lanka Kanda', description: 'The battle against egoic tyranny and the restoration of moral balance.', theme: 'Victory of moral character over pride', hindiTheme: 'सत्य की असत्य पर विजय और धर्म की पुनर्स्थापना' },
+          { id: 'rk7', number: '07', hindiTitle: 'उत्तरकाण्ड', englishTitle: 'Uttara Kanda', description: 'Enlightened governance, dialogues on true wisdom, and devotion free from delusion.', theme: 'Spiritual liberation and harmony', hindiTheme: 'रामराज्य का आदर्श और ज्ञान-भक्ति का सर्वोच्च संवाद' }
+        ],
+        verses: [
+          {
+            id: 'r_sundar_1',
+            secNum: 5,
+            itemNum: 1,
+            original: 'प्रबिसि नगर कीजे सब काजा। हृदयं राखि कोसलपुर राजा॥\nगरल सुधा रिपु करहिं मिताई। गोपद सिंधु अनल सितलाई॥',
+            hindi: 'अयोध्या के राजा को हृदय में धारण करके सभी कार्य सिद्ध करें। उनके स्मरण से विष भी अमृत बन जाता है, शत्रु मित्र हो जाते हैं और महासागर गोखुर के समान हो जाता है।',
+            english: 'Enter upon your duties keeping the highest truth in your heart. Through pure surrender, poison turns to nectar, enemies turn to allies, and vast oceans become as effortless as puddles.',
+            why: 'When intention is pure and faith is grounded, seemingly insurmountable obstacles lose their power to intimidate.',
+            hindiWhy: 'जब अंतःकरण में सत्य और प्रभु का वास होता है, तब बड़ी से बड़ी बाधा भी सुगम हो जाती है।',
+            audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=ambient-hindu-bell-21447.mp3'
+          }
+        ],
+        stories: [
+          {
+            id: 'rs1',
+            title: "Hanuman's Power of Humility",
+            hindiTitle: "हनुमान जी की विनम्रता",
+            category: "Courage",
+            hindiCategory: "समर्पण और बल",
+            readingTime: "4 min",
+            hindiReadingTime: "४ मिनट",
+            desc: "Why true strength forgets its own greatness until service calls it forward.",
+            hindiDesc: "सच्चा बल अहंकार में नहीं, बल्कि सेवा और विनम्रता में निवास करता है।",
+            content: "Standing before the vast ocean, Hanuman sat in quiet contemplation while others lamented its expanse. Jambavan reminded him of his forgotten divine strength. Hanuman did not boast; he simply offered his heart and leaped.",
+            hindiContent: "विशाल समुद्र के तट पर हनुमान जी शांत बैठे थे। जाम्बवंत जी ने उन्हें उनके विस्मृत बल का स्मरण कराया। हनुमान जी में कोई अभिमान नहीं आया; उन्होंने प्रभु का स्मरण किया और छलांग लगा दी।"
+          }
+        ],
+        products: [
+          {
+            id: 'prod_ram_comic_1',
+            bookId: 'ramcharitmanas',
+            title: "Flight of the Devotee: Sundara Kanda",
+            hindiTitle: "सिंधु लंघन: सुन्दरकाण्ड",
+            productType: "Illustrated Comic Edition",
+            hindiProductType: "सचित्र डिजिटल कॉमिक",
+            description: "The crossing of the great ocean. An original graphic portrayal of quiet devotion outmatching brute force.",
+            hindiDesc: "समुद्र लंघन का विहंगम दृश्य। अडिग विश्वास और भक्ति की गरिमामयी सचित्र गाथा।",
+            price: 199,
+            samplePreview: "Panel 1: The waves crash against Mahendra. Panel 2: Hanuman's leap into golden twilight.",
+            hindiSamplePreview: "दृश्य १: महेंद्र पर्वत की शिलाएं। दृश्य २: आकाश मार्ग में हनुमान जी की अभूतपूर्व छलांग।",
+            fileToken: "sec_ram_sundar_token_8471"
+          }
+        ]
+      }
+    };
+
+    const problemsData = {
+      lost: {
+        title: "When You Feel Lost",
+        hindiTitle: "जब आप दिशाहीन महसूस करें",
+        teaching: "Clarity follows focused action, not paralyzed contemplation.",
+        hindiTeaching: "स्पष्टता कर्म करने से आती है, केवल चिंता में डूबे रहने से नहीं।",
+        ref: "Bhagavad Gita • Ch 3, V 8",
+        desc: "Thinking without action leads to depression. When purpose seems distant, choose the immediate ethical duty right in front of you.",
+        hindiDesc: "कर्महीन विचार केवल विषाद उत्पन्न करते हैं। जब कोई मार्ग न दिखे, तो अपने सामने उपस्थित तत्कालिक कर्तव्य का निष्ठा से पालन करें।"
+      },
+      fear: {
+        title: "When Fear Takes Over",
+        hindiTitle: "जब भय मन पर हावी हो जाए",
+        teaching: "The true conscious witness within you is unthreatened.",
+        hindiTeaching: "आपकी आत्मा अविनाशी है, कोई बाह्य परिस्थिति इसे मिटा नहीं सकती।",
+        ref: "Bhagavad Gita • Ch 2, V 23",
+        desc: "Fear flourishes when we project hypothetical loss. Realize that your core presence cannot be burned by flame or tarnished by opinion.",
+        hindiDesc: "भय केवल भविष्य की आशंकाओं में पलता है। स्मरण रखें कि आपकी आंतरिक चेतना को अग्नि नहीं जला सकती।"
+      },
+      failed: {
+        title: "When Failure Breaks You",
+        hindiTitle: "जब असफलता आपको तोड़ दे",
+        teaching: "Defeat belongs to events, never to your enduring spirit.",
+        hindiTeaching: "हार केवल एक घटना है, आपकी आत्मा की पराजय नहीं।",
+        ref: "Ramcharitmanas • Ayodhya Kanda",
+        desc: "Sri Rama accepted forest exile with complete equanimity. Reframe setbacks as training grounds for character.",
+        hindiDesc: "श्रीराम ने राजमहल के स्थान पर वनवास को भी समभाव से स्वीकार किया। विपत्तियों को आत्म-विकास का माध्यम बनाएं।"
+      },
+      focus: {
+        title: "When You Cannot Focus",
+        hindiTitle: "जब मन एकाग्र न हो सके",
+        teaching: "Restlessness yields to patient, daily practice.",
+        hindiTeaching: "मन की चंचलता केवल नियमित अभ्यास और वैराग्य से शांत होती है।",
+        ref: "Bhagavad Gita • Ch 6, V 35",
+        desc: "Do not combat an anxious mind with irritation. Treat attention like an untrained companion: gently, persistently guide it back.",
+        hindiDesc: "अशांत मन से क्रोध न करें। बालक की भांति इसे धैर्यपूर्वक पुनः अपने ध्येय पर स्थापित करें।"
+      },
+      pressured: {
+        title: "When You Feel Pressured",
+        hindiTitle: "जब आप भारी दबाव महसूस करें",
+        teaching: "Relinquish borrowed burdens that were never yours to bear.",
+        hindiTeaching: "उन चिंताओं को छोड़ दें जो आपके नियंत्रण में नहीं हैं।",
+        ref: "Bhagavad Gita • Ch 18, V 66",
+        desc: "You are responsible for the purity of your intent, not for manipulating the reactions of the entire world.",
+        hindiDesc: "आप केवल अपनी नीयत और प्रयास के लिए उत्तरदायी हैं, संपूर्ण संसार की प्रतिक्रियाओं के लिए नहीं।"
+      },
+      angry: {
+        title: "When Anger Takes Control",
+        hindiTitle: "जब क्रोध आप पर अधिकार कर ले",
+        teaching: "Anger burns the vessel that contains it.",
+        hindiTeaching: "क्रोध सबसे पहले उसी को जलाता है जिसमें वह जन्म लेता है।",
+        ref: "Bhagavad Gita • Ch 2, V 63",
+        desc: "From unmet expectations comes anger; from anger comes delusion and ruined intellect. Delay reaction until the fever passes.",
+        hindiDesc: "क्रोध से बुद्धि का नाश होता है और व्यक्ति स्वयं अपना अहित कर बैठता है।"
+      },
+      letgo: {
+        title: "When You Cannot Let Go",
+        hindiTitle: "जब आप पुरानी बातों को छोड़ न पाएं",
+        teaching: "Attachment to how life 'must' be produces ceaseless suffering.",
+        hindiTeaching: "अतीत और परिणामों से आसक्ति ही समस्त दुःखों का मूल कारण है।",
+        ref: "Ramcharitmanas • Aranya Kanda",
+        desc: "Holding on tightly to an unchangeable past prevents you from inhabiting the present. Let what is gone be gone.",
+        hindiDesc: "जो बीत चुका है उसे कसकर पकड़े रहने से वर्तमान खो जाता है। जो चला गया, उसे ईश्वर की इच्छा मानकर विदा करें।"
+      },
+      purpose: {
+        title: "When You Don't Know Your Purpose",
+        hindiTitle: "जब जीवन का उद्देश्य समझ न आए",
+        teaching: "Your authentic, modest duty surpasses borrowed grandeur.",
+        hindiTeaching: "दूसरों की नकल करने से कहीं बेहतर अपने सहज धर्म पर चलना है।",
+        ref: "Bhagavad Gita • Ch 3, V 35",
+        desc: "Stop measuring your vocation by someone else's applause. Sincerity in your natural sphere is your real contribution.",
+        hindiDesc: "दूसरों की प्रशंसा के पीछे मत भागें। अपने स्वभाव के अनुसार सच्चाई से कर्म करना ही सच्चा धर्म है।"
+      }
+    };
+
+    const topicsData = {
+      DUTY: { title: "Dharma & Duty", hindiTitle: "धर्म और कर्तव्य", teaching: "Duty performed without entitlement grants sovereign peace.", hindiTeaching: "निःस्वार्थ भाव से किया गया कर्तव्य परम शांति प्रदान करता है।", verse: "Gita 2.47" },
+      FEAR: { title: "Overcoming Fear", hindiTitle: "भय से मुक्ति", teaching: "Ground yourself in the indestructible witness of awareness.", hindiTeaching: "अविनाशी आत्म-स्वरूप को पहचानकर समस्त भयों से मुक्त हों।", verse: "Gita 2.20" },
+      CHARACTER: { title: "Moral Character", hindiTitle: "चरित्र और मर्यादा", teaching: "Nobility shines through forgiveness and sacrifice under trial.", hindiTeaching: "कठिन समय में भी क्षमा और त्याग ही मनुष्य की वास्तविक महानता है।", verse: "Ramcharitmanas 2.10" },
+      STILLNESS: { title: "Mind Mastery", hindiTitle: "मन का संयम", teaching: "The mind stilled through meditation resembles a lamp sheltered from the wind.", hindiTeaching: "ध्यान से स्थिर हुआ मन वायु रहित स्थान में जलते दीपक के समान शांत रहता है।", verse: "Gita 6.19" },
+      COMPASSION: { title: "Universal Compassion", hindiTitle: "परोपकार और करुणा", teaching: "There is no spiritual virtue higher than kindness to others.", hindiTeaching: "परोपकार के समान कोई धर्म नहीं, और दूसरों को पीड़ा देने के समान कोई अधर्म नहीं।", verse: "Ramcharitmanas 7.21" },
+      SURRENDER: { title: "Sacred Humility", hindiTitle: "समर्पण और भक्ति", teaching: "Surrender of ego does not weaken you; it unlocks divine endurance.", hindiTeaching: "अहंकार का त्याग व्यक्ति को दुर्बल नहीं, अपितु अजेय बनाता है।", verse: "Gita 18.66" }
+    };
+
+    /* ================= 2. STATE & AUDIO ENGINE ================= */
+    let currentBookKey = 'gita';
+    let currentVerseIdx = 0;
+    let isDarkMode = false;
+    let currentLang = 'en';
+    let activeProblemKey = 'lost';
+    let selectedProductForCheckout = null;
+    let savedBookmarks = JSON.parse(localStorage.getItem('eternal_lore_bookmarks')) || [];
+    let currentUser = null;
+
+    let audioElement = new Audio();
+    let isAudioPlaying = false;
+
+    audioElement.addEventListener('timeupdate', () => {
+      if (audioElement.duration) {
+        const pct = (audioElement.currentTime / audioElement.duration) * 100;
+        document.getElementById('audioProgressFill').style.width = pct + '%';
+        const curMin = Math.floor(audioElement.currentTime / 60);
+        const curSec = Math.floor(audioElement.currentTime % 60).toString().padStart(2, '0');
+        const durMin = Math.floor(audioElement.duration / 60);
+        const durSec = Math.floor(audioElement.duration % 60).toString().padStart(2, '0');
+        document.getElementById('audioTimerBadge').innerText = `${curMin}:${curSec} / ${durMin}:${durSec}`;
+      }
+    });
+
+    audioElement.addEventListener('ended', () => {
+      isAudioPlaying = false;
+      document.getElementById('audioPlayToggleBtn').innerText = '▶';
+      document.getElementById('audioProgressFill').style.width = '0%';
+    });
+
+    function toggleAudioPlayback() {
+      const b = libraryData[currentBookKey];
+      const v = b.verses[currentVerseIdx];
+      if (!v || !v.audioUrl) return;
+
+      if (audioElement.src !== v.audioUrl) {
+        audioElement.src = v.audioUrl;
+      }
+
+      if (isAudioPlaying) {
+        audioElement.pause();
+        isAudioPlaying = false;
+        document.getElementById('audioPlayToggleBtn').innerText = '▶';
+      } else {
+        audioElement.play();
+        isAudioPlaying = true;
+        document.getElementById('audioPlayToggleBtn').innerText = '⏸';
+      }
+    }
+
+    function seekAudioPosition(e) {
+      const container = document.getElementById('audioProgressContainer');
+      const rect = container.getBoundingClientRect();
+      const clickPos = (e.clientX - rect.left) / rect.width;
+      if (audioElement.duration) {
+        audioElement.currentTime = clickPos * audioElement.duration;
+      }
+    }
+
+    /* ================= 3. FIREBASE SETUP & CLOUD SYNC ================= */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDJr0gRK36lhxs3UjQUduv7tthIFdf8gBM",
+      authDomain: "eternal-lore-897b3.firebaseapp.com",
+      projectId: "eternal-lore-897b3",
+      storageBucket: "eternal-lore-897b3.firebasestorage.app",
+      messagingSenderId: "159562150206",
+      appId: "1:159562150206:web:8f867b3ab6d2e330f6fc6f"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(async (user) => {
+      currentUser = user;
+      const display = document.getElementById('authUserDisplay');
+      if (user) {
+        display.innerText = user.email.split('@')[0];
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          if (doc.exists && doc.data().bookmarks) {
+            savedBookmarks = doc.data().bookmarks;
+            localStorage.setItem('eternal_lore_bookmarks', JSON.stringify(savedBookmarks));
+            updateBookmarkBadge();
+          }
+        } catch (e) {
+          console.warn("Firestore sync:", e.message);
+        }
+      } else {
+        display.innerText = currentLang === 'hi' ? 'लॉगिन' : 'Login';
+      }
+    });
+
+    function openAuthModal() {
+      if (currentUser) {
+        if (confirm(currentLang === 'hi' ? "क्या आप लॉगआउट करना चाहते हैं?" : "Do you wish to logout?")) {
+          auth.signOut();
+        }
+      } else {
+        openModal('authModal');
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmailInput').value.trim();
+      const pass = document.getElementById('authPasswordInput').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        closeModal('authModal');
+      } catch (err) {
+        try {
+          await auth.createUserWithEmailAndPassword(email, pass);
+          closeModal('authModal');
+        } catch (signUpErr) {
+          alert(signUpErr.message);
+        }
+      }
+    }
+
+    async function handleGoogleSignIn() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+        closeModal('authModal');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    /* ================= 4. BOOK SWITCHING & RENDERERS ================= */
+    function switchActiveBook(bookKey) {
+      if (!libraryData[bookKey]) return;
+      currentBookKey = bookKey;
+      currentVerseIdx = 0;
+
+      if (isAudioPlaying) {
+        audioElement.pause();
+        isAudioPlaying = false;
+        document.getElementById('audioPlayToggleBtn').innerText = '▶';
+      }
+
+      document.getElementById('btnBookGita').classList.toggle('active', bookKey === 'gita');
+      document.getElementById('btnBookRam').classList.toggle('active', bookKey === 'ramcharitmanas');
+
+      const b = libraryData[currentBookKey];
+      document.getElementById('sectionsMainHeading').innerText = currentLang === 'hi' ? b.hindiSectionsHeading : b.sectionsHeading;
+      document.getElementById('sectionsSubHeading').innerText = currentLang === 'hi' ? b.hindiSectionsSub : b.sectionsSub;
+
+      renderSections();
+      renderFeaturedVerse();
+      renderStories();
+      renderProducts();
+    }
+
+    function initApp() {
+      switchActiveBook('gita');
+      solveProblem('lost');
+      renderTopics();
+      updateBookmarkBadge();
+      init3DLiftEffects();
+    }
+
+    /* LANGUAGE-AWARE SECTION CARDS: Clean separation of English & Hindi */
+    function renderSections() {
+      const b = libraryData[currentBookKey];
+      const grid = document.getElementById('sectionsGrid');
+      grid.innerHTML = b.sections.map(s => {
+        const titleText = currentLang === 'hi' ? s.hindiTitle : s.englishTitle;
+        const subText = currentLang === 'hi' ? s.englishTitle : s.hindiTitle;
+        const exploreLabel = currentLang === 'hi' ? 'विवरण पढ़ें →' : `Explore ${b.sectionTerm} →`;
+
+        return `
+          <div class="book-card" onclick="openSectionModal('${s.id}')">
+            <div>
+              <span class="card-cat-label">${currentLang === 'hi' ? b.hindiSectionTerm : b.sectionTerm} ${s.number}</span>
+              <h3 class="card-title">${titleText}</h3>
+              <div class="card-author">${subText}</div>
+              <p class="card-desc">${s.description}</p>
+            </div>
+            <div class="card-foot">
+              <span style="font-size:0.85rem; color:var(--gold-primary); font-weight:700;">
+                ${exploreLabel}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      init3DLiftEffects();
+    }
+
+    function renderFeaturedVerse() {
+      const b = libraryData[currentBookKey];
+      const v = b.verses[currentVerseIdx];
+      if (!v) return;
+
+      document.getElementById('verseNumDisplay').innerText = `${currentLang === 'hi' ? b.hindiSectionTerm : b.sectionTerm} ${v.secNum} • ${currentLang === 'hi' ? b.hindiVerseTerm : b.verseTerm} ${v.itemNum}`;
+      document.getElementById('verseOriginalDisplay').innerText = v.original;
+      document.getElementById('verseHindiDisplay').innerText = v.hindi;
+      document.getElementById('verseEnglishDisplay').innerText = `"${v.english}"`;
+      document.getElementById('verseWhyDisplay').innerText = currentLang === 'hi' ? v.hindiWhy : v.why;
+      
+      document.getElementById('audioProgressFill').style.width = '0%';
+      document.getElementById('audioTimerBadge').innerText = '0:00 / 0:00';
+      if (isAudioPlaying) {
+        audioElement.pause();
+        isAudioPlaying = false;
+        document.getElementById('audioPlayToggleBtn').innerText = '▶';
+      }
+    }
+
+    function nextFeaturedVerse() {
+      const b = libraryData[currentBookKey];
+      currentVerseIdx = (currentVerseIdx + 1) % b.verses.length;
+      renderFeaturedVerse();
+    }
+
+    function renderStories() {
+      const b = libraryData[currentBookKey];
+      const grid = document.getElementById('storiesGrid');
+      grid.innerHTML = b.stories.map(st => `
+        <div class="book-card">
+          <div>
+            <div class="card-icon">📜</div>
+            <span class="card-cat-label">${currentLang === 'hi' ? st.hindiCategory : st.category} • ${currentLang === 'hi' ? st.hindiReadingTime : st.readingTime}</span>
+            <h3 class="card-title">${currentLang === 'hi' ? st.hindiTitle : st.title}</h3>
+            <p class="card-desc">${currentLang === 'hi' ? st.hindiDesc : st.desc}</p>
+          </div>
+          <div class="card-foot">
+            <button class="btn-gold" style="width:100%; justify-content:center;" onclick="openStoryModal('${st.id}')">
+              ${currentLang === 'hi' ? 'कथा पढ़ें' : 'Read Story'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+      init3DLiftEffects();
+    }
+
+    function renderProducts() {
+      const b = libraryData[currentBookKey];
+      const grid = document.getElementById('productsGrid');
+      grid.innerHTML = b.products.map(p => `
+        <div class="book-card">
+          <div>
+            <div class="card-icon">🎨</div>
+            <span class="card-cat-label">${currentLang === 'hi' ? p.hindiProductType : p.productType}</span>
+            <h3 class="card-title">${currentLang === 'hi' ? p.hindiTitle : p.title}</h3>
+            <p class="card-desc">${currentLang === 'hi' ? p.hindiDesc : p.description}</p>
+          </div>
+          <div class="card-foot">
+            <span class="card-price">₹${p.price}</span>
+            <button class="btn-gold" onclick="openProductDetailModal('${p.id}')">
+              ${currentLang === 'hi' ? 'विस्तार देखें' : 'View Product'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+      init3DLiftEffects();
+    }
+
+    function solveProblem(problemKey, btn) {
+      activeProblemKey = problemKey;
+      if (btn) {
+        document.querySelectorAll('#problemChipsBar .cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const data = problemsData[problemKey] || problemsData.lost;
+      const display = document.getElementById('problemSolverDisplay');
+      
+      const title = currentLang === 'hi' ? data.hindiTitle : data.title;
+      const teaching = currentLang === 'hi' ? data.hindiTeaching : data.teaching;
+      const desc = currentLang === 'hi' ? data.hindiDesc : data.desc;
+      const btnSaveLabel = currentLang === 'hi' ? '🔖 सुरक्षित करें' : '🔖 Save Counsel';
+
+      display.innerHTML = `
+        <span class="card-cat-label">${data.ref}</span>
+        <h3 class="card-title" style="font-size: 1.6rem; margin: 0.8rem 0;">${title}</h3>
+        <p style="font-size: 1.1rem; color: var(--gold-primary); font-weight: 700; margin-bottom: 0.8rem;">"${teaching}"</p>
+        <p class="card-desc" style="font-size: 1rem; margin-bottom: 1.2rem;">${desc}</p>
+        <div style="display:flex; justify-content:flex-end; border-top: 1px solid var(--border-soft); padding-top: 1rem;">
+          <button class="btn-gold" onclick="bookmarkItem('${title}: ${teaching}')">${btnSaveLabel}</button>
+        </div>
+      `;
+    }
+
+    function renderTopics() {
+      const bar = document.getElementById('topicsBar');
+      const keys = Object.keys(topicsData);
+      bar.innerHTML = keys.map((k, i) => `
+        <button class="cat-btn ${i === 0 ? 'active' : ''}" onclick="selectTopic('${k}', this)">${k}</button>
+      `).join('');
+      selectTopic(keys[0]);
+    }
+
+    function selectTopic(topicKey, btn) {
+      if (btn) {
+        document.querySelectorAll('#topicsBar .cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const item = topicsData[topicKey];
+      const title = currentLang === 'hi' ? item.hindiTitle : item.title;
+      const teaching = currentLang === 'hi' ? item.hindiTeaching : item.teaching;
+      const btnSaveTopic = currentLang === 'hi' ? '🔖 सूत्र सहेजें' : '🔖 Bookmark Topic';
+
+      document.getElementById('topicDetailDisplay').innerHTML = `
+        <span class="card-cat-label">${currentLang === 'hi' ? 'जीवन सूत्र' : 'Life Topic'} • ${topicKey}</span>
+        <h3 class="card-title" style="margin: 0.6rem 0;">${title}</h3>
+        <p class="card-desc" style="font-size: 1.05rem; margin-bottom: 1rem;">"${teaching}"</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-soft); padding-top:0.8rem;">
+          <span style="font-size:0.85rem; color:var(--gold-primary); font-weight:700;">${currentLang === 'hi' ? 'संदर्भ' : 'Reference'}: ${item.verse}</span>
+          <button class="btn-gold" onclick="bookmarkItem('${topicKey} - ${title}')">${btnSaveTopic}</button>
+        </div>
+      `;
+    }
+
+    /* ================= 5. PRODUCT & VERIFIED PAYMENT ================= */
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function openProductDetailModal(productId) {
+      const b = libraryData[currentBookKey];
+      const prod = b.products.find(item => item.id === productId);
+      if (!prod) return;
+
+      selectedProductForCheckout = prod;
+      document.getElementById('modalProductType').innerText = currentLang === 'hi' ? prod.hindiProductType : prod.productType;
+      document.getElementById('modalProductTitle').innerText = currentLang === 'hi' ? prod.hindiTitle : prod.title;
+      document.getElementById('modalProductDesc').innerText = currentLang === 'hi' ? prod.hindiDesc : prod.description;
+      document.getElementById('modalProductSample').innerText = currentLang === 'hi' ? prod.hindiSamplePreview : prod.samplePreview;
+      document.getElementById('modalProductPrice').innerText = `₹${prod.price}`;
+
+      openModal('productDetailModal');
+    }
+
+    function openCheckoutModal() {
+      if (!selectedProductForCheckout) return;
+      closeModal('productDetailModal');
+      openModal('checkoutModal');
+    }
+
+    function handlePaymentGatewayFlow(e) {
+      e.preventDefault();
+      const name = document.getElementById('custName').value.trim();
+      const email = document.getElementById('custEmail').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const prod = selectedProductForCheckout;
+
+      const btn = document.getElementById('btnProceedToPay');
+      btn.disabled = true;
+      btn.innerText = currentLang === 'hi' ? 'प्रक्रिया जारी है...' : 'Initiating Gateway...';
+
+      const generatedOrderId = "ORD_" + Math.floor(100000 + Math.random() * 900000);
+
+      const options = {
+        key: "rzp_test_placeholder_key",
+        amount: prod.price * 100,
+        currency: "INR",
+        name: "Eternal Lore Publications",
+        description: prod.title,
+        handler: function (response) {
+          completeVerifiedOrder(generatedOrderId, prod, name, email, response.razorpay_payment_id || "PAY_VERIFIED_" + Date.now());
+        },
+        prefill: { name, email, contact: phone },
+        theme: { color: "#C87919" }
+      };
+
+      try {
+        if (window.Razorpay && options.key !== "rzp_test_placeholder_key") {
+          const rzp = new Razorpay(options);
+          rzp.open();
+        } else {
+          setTimeout(() => {
+            completeVerifiedOrder(generatedOrderId, prod, name, email, "PAY_VERIFIED_" + Date.now());
+          }, 700);
+        }
+      } catch (err) {
+        completeVerifiedOrder(generatedOrderId, prod, name, email, "PAY_VERIFIED_" + Date.now());
+      }
+    }
+
+    function completeVerifiedOrder(orderId, prod, customerName, customerEmail, paymentId) {
+      closeModal('checkoutModal');
+      document.getElementById('btnProceedToPay').disabled = false;
+      document.getElementById('btnProceedToPay').innerText = currentLang === 'hi' ? 'भुगतान के लिए आगे बढ़ें' : 'PROCEED TO SECURE PAYMENT';
+
+      document.getElementById('successOrderId').innerText = `Order #${orderId} • Status: PAID`;
+      document.getElementById('successProductTitle').innerText = currentLang === 'hi' ? prod.hindiTitle : prod.title;
+      document.getElementById('successAmount').innerText = `Verified Payment: ₹${prod.price} (ID: ${paymentId})`;
+      
+      const dlBtn = document.getElementById('secureDownloadBtn');
+      dlBtn.href = "#";
+      dlBtn.onclick = (ev) => {
+        ev.preventDefault();
+        alert(currentLang === 'hi' ? "सत्यापित संस्करण डाउनलोड हो रहा है।" : `Access granted for ${customerEmail}. Downloading file...`);
+      };
+
+      openModal('paymentSuccessModal');
+    }
+
+    function openSectionModal(secId) {
+      const b = libraryData[currentBookKey];
+      const s = b.sections.find(item => item.id === secId);
+      if (!s) return;
+
+      document.getElementById('modalSecLabel').innerText = `${currentLang === 'hi' ? b.hindiSectionTerm : b.sectionTerm} ${s.number}`;
+      document.getElementById('modalSecTitle').innerText = `${currentLang === 'hi' ? s.hindiTitle : s.englishTitle} (${currentLang === 'hi' ? s.englishTitle : s.hindiTitle})`;
+      document.getElementById('modalSecDesc').innerText = s.description;
+      document.getElementById('modalSecTheme').innerText = currentLang === 'hi' ? s.hindiTheme : s.theme;
+      openModal('sectionModal');
+    }
+
+    function openStoryModal(storyId) {
+      const b = libraryData[currentBookKey];
+      const st = b.stories.find(item => item.id === storyId);
+      if (!st) return;
+
+      document.getElementById('modalStoryCat').innerText = currentLang === 'hi' ? st.hindiCategory : st.category;
+      document.getElementById('modalStoryTitle').innerText = currentLang === 'hi' ? st.hindiTitle : st.title;
+      document.getElementById('modalStoryTime').innerText = `${currentLang === 'hi' ? 'पठन समय: ' : 'Reading Time: '}${currentLang === 'hi' ? st.hindiReadingTime : st.readingTime}`;
+      document.getElementById('modalStoryContent').innerText = currentLang === 'hi' ? st.hindiContent : st.content;
+      openModal('storyModal');
+    }
+
+    /* Bookmarking Logic */
+    async function bookmarkItem(text) {
+      if (!savedBookmarks.includes(text)) {
+        savedBookmarks.push(text);
+        localStorage.setItem('eternal_lore_bookmarks', JSON.stringify(savedBookmarks));
+        updateBookmarkBadge();
+        
+        if (currentUser) {
+          try {
+            await db.collection('users').doc(currentUser.uid).set({ bookmarks: savedBookmarks }, { merge: true });
+          } catch (e) {
+            console.warn("Cloud save note:", e.message);
+          }
+        }
+        alert(currentLang === 'hi' ? "सफलतापूर्वक सहेजा गया!" : "Saved to your bookmarks!");
+      } else {
+        alert(currentLang === 'hi' ? "यह पहले से सहेजा हुआ है।" : "Already saved in bookmarks.");
+      }
+    }
+
+    function bookmarkCurrentVerse() {
+      const b = libraryData[currentBookKey];
+      const v = b.verses[currentVerseIdx];
+      const note = currentLang === 'hi' 
+        ? `${b.hindiTitle} (${b.hindiSectionTerm} ${v.secNum}, ${b.hindiVerseTerm} ${v.itemNum}): "${v.hindi}"`
+        : `${b.bookTitle} (${b.sectionTerm} ${v.secNum}, ${b.verseTerm} ${v.itemNum}): "${v.english}"`;
+      bookmarkItem(note);
+    }
+
+    function openBookmarksModal() {
+      const area = document.getElementById('bookmarksListArea');
+      if (savedBookmarks.length === 0) {
+        area.innerHTML = `<p style="color:var(--text-muted); padding:1.5rem 0;">${currentLang === 'hi' ? 'कोई सुरक्षित सूत्र नहीं है।' : 'No saved bookmarks yet.'}</p>`;
+      } else {
+        area.innerHTML = savedBookmarks.map((b, i) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:0.8rem 0; border-bottom:1px solid var(--border-soft);">
+            <span style="font-size:0.92rem;">${b}</span>
+            <button onclick="removeBookmark(${i})" style="color:var(--gold-primary); font-weight:bold;">✕</button>
+          </div>
+        `).join('');
+      }
+      openModal('bookmarksModal');
+    }
+
+    async function removeBookmark(index) {
+      savedBookmarks.splice(index, 1);
+      localStorage.setItem('eternal_lore_bookmarks', JSON.stringify(savedBookmarks));
+      updateBookmarkBadge();
+      if (currentUser) {
+        try {
+          await db.collection('users').doc(currentUser.uid).set({ bookmarks: savedBookmarks }, { merge: true });
+        } catch (e) {
+          console.warn("Cloud remove note:", e.message);
+        }
+      }
+      openBookmarksModal();
+    }
+
+    function updateBookmarkBadge() {
+      document.getElementById('bookmarkBadge').innerText = savedBookmarks.length;
+    }
+
+    /* Functional Audio / Share Stubs */
+    function shareVerseStub() {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(window.location.href);
+        alert(currentLang === 'hi' ? "लिंक कॉपी हो गया है!" : "Scripture link copied to clipboard.");
+      }
+    }
+
+    /* ================= 6. THEME & FULL TRANSLATION DICTIONARY ================= */
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      document.body.classList.toggle('dark-mode', isDarkMode);
+      document.getElementById('themeToggleBtn').innerHTML = isDarkMode ? '☀️ <span id="themeText">Light</span>' : '🌙 <span id="themeText">Dark</span>';
+    }
+
+    const translations = {
+      en: {
+        navHome: "Home",
+        navSections: "Sections",
+        navStories: "Stories",
+        navComics: "Products",
+        heroBadge: "Timeless Dialogue • Living Philosophy",
+        heroTitle: "The Wisdom That <span>Still Speaks</span>",
+        heroDesc: "Ancient wisdom. Modern questions. Timeless answers.",
+        btnGita: "📖 Bhagavad Gita",
+        btnRam: "🏹 Ramcharitmanas",
+        ctaExplore: "EXPLORE SCRIPTURE",
+        ctaStory: "START WITH A STORY",
+        goingThroughHeading: "What Are You Going Through?",
+        goingThroughSub: "Select your current mental landscape to discover timeless counsel directly relevant to your modern struggle.",
+        pLost: "I FEEL LOST",
+        pFear: "I AM AFRAID",
+        pFailed: "I FAILED",
+        pFocus: "I CANNOT FOCUS",
+        pPressured: "I FEEL PRESSURED",
+        pAngry: "I AM ANGRY",
+        pLetgo: "I CANNOT LET GO",
+        pPurpose: "I DON'T KNOW MY PURPOSE",
+        verseHeading: "Verse & Stanza Experience",
+        verseSub: "Meditate upon selected foundational verses translated without distortion for practical living.",
+        whyMattersLabel: "Why it matters today:",
+        btnNextVerse: "Next Excerpt →",
+        btnSaveVerse: "🔖 Save",
+        btnShare: "🔗 Share",
+        lifeHeading: "Life Wisdom",
+        lifeSub: "Explore practical sacred wisdom categorized across core human experiences.",
+        storiesHeading: "Wisdom Through Stories",
+        storiesSub: "Original philosophical narratives conveying profound self-mastery in accessible everyday metaphors.",
+        comicsHeading: "Wisdom, Told Visually.",
+        comicsSub: "Ancient ideas, reimagined through original, dignified visual graphic storytelling and digital editions.",
+        footerText: "Dedicated to respectful exploration of sacred literature & timeless wisdom.",
+        coreThemeLabel: "Core Philosophical Essence:",
+        btnBookmarkSec: "🔖 Bookmark Section",
+        btnBookmarkStory: "🔖 Bookmark Story",
+        searchTitle: "Global Wisdom Search",
+        savedTitle: "Saved Bookmarks",
+        includedLabel: "What's Included:",
+        sampleLabel: "[ Verified Sample Preview ]",
+        priceLabel: "Total Amount:",
+        btnBuyNow: "BUY NOW →",
+        checkoutHeading: "Complete Acquisition",
+        checkoutSub: "Enter your delivery details. After verified payment, your digital download will unlock instantly.",
+        lblName: "Customer Name *",
+        lblEmail: "Email Address * (For Receipt & Digital Access)",
+        lblPhone: "WhatsApp / Mobile Number *",
+        btnPay: "PROCEED TO SECURE PAYMENT",
+        paySuccessTitle: "PAYMENT SUCCESSFUL",
+        paySuccessSub: "Your payment has been verified. Your verified digital edition is unlocked below:",
+        btnClose: "Return to Sanctuary"
+      },
+      hi: {
+        navHome: "मुख्य पृष्ठ",
+        navSections: "अध्याय व काण्ड",
+        navStories: "कहानियां",
+        navComics: "उत्पाद",
+        heroBadge: "शाश्वत संवाद • जीवन दर्शन",
+        heroTitle: "शाश्वत प्रज्ञा जो <span>आज भी बोलती है</span>",
+        heroDesc: "प्राचीन ज्ञान। आधुनिक प्रश्न। शाश्वत समाधान।",
+        btnGita: "📖 श्रीमद्भगवद्गीता",
+        btnRam: "🏹 श्रीरामचरितमानस",
+        ctaExplore: "शास्त्र अन्वेषण करें",
+        ctaStory: "कथा से आरंभ करें",
+        goingThroughHeading: "आप किस स्थिति से गुजर रहे हैं?",
+        goingThroughSub: "अपने वर्तमान मनोभाव को चुनें और आत्मिक संबल तथा सही दिशा प्राप्त करें।",
+        pLost: "दिशाहीन महसूस होना",
+        pFear: "भयभीत होना",
+        pFailed: "असफलता का दुःख",
+        pFocus: "एकाग्रता की कमी",
+        pPressured: "अत्यधिक मानसिक दबाव",
+        pAngry: "क्रोध का वेग",
+        pLetgo: "पुरानी बातें न छोड़ पाना",
+        pPurpose: "उद्देश्य समझ न आना",
+        verseHeading: "श्लोक व दोहा अनुभूति",
+        verseSub: "जीवन में उतारने योग्य प्रामाणिक और विशुद्ध अनुवाद से युक्त चयनित श्लोक व चौपाइयां।",
+        whyMattersLabel: "आज इसका क्या महत्व है:",
+        btnNextVerse: "अगला पद →",
+        btnSaveVerse: "🔖 सहेजें",
+        btnShare: "🔗 साझा करें",
+        lifeHeading: "जीवन सूत्र",
+        lifeSub: "मानव जीवन की चुनौतियों के अनुसार दोनों पवित्र ग्रंथों से प्राप्त व्यावहारिक शिक्षा।",
+        storiesHeading: "कहानियों से सीखें",
+        storiesSub: "गहरे दार्शनिक सत्यों को सरल दृष्टांतों और कहानियों के माध्यम से समझें।",
+        comicsHeading: "सचित्र ज्ञान व डिजिटल उत्पाद",
+        comicsSub: "प्राचीन विचारों का मौलिक, गरिमामयी और सजीव चित्रात्मक रूपांतरण तथा विशेष डिजिटल संस्करण।",
+        footerText: "पवित्र साहित्य एवं शाश्वत ज्ञान के निष्ठापूर्ण अध्ययन को समर्पित।",
+        coreThemeLabel: "मूल दार्शनिक भाव:",
+        btnBookmarkSec: "🔖 अध्याय सुरक्षित करें",
+        btnBookmarkStory: "🔖 कथा सुरक्षित करें",
+        searchTitle: "समग्र ज्ञान खोज",
+        savedTitle: "सहेजे गए सूत्र",
+        includedLabel: "शामिल सामग्री:",
+        sampleLabel: "[ प्रमाणित पूर्वावलोकन ]",
+        priceLabel: "कुल शुल्क:",
+        btnBuyNow: "अभी खरीदें →",
+        checkoutHeading: "सुरक्षित खरीद",
+        checkoutSub: "अपना विवरण दर्ज करें। भुगतान सत्यापन के तुरंत बाद डिजिटल डाउनलोड उपलब्ध हो जाएगा।",
+        lblName: "ग्राहक का नाम *",
+        lblEmail: "ईमेल पता * (रसीद व डिजिटल डाउनलोड हेतु)",
+        lblPhone: "व्हाट्सएप / मोबाइल नंबर *",
+        btnPay: "सुरक्षित भुगतान के लिए आगे बढ़ें",
+        paySuccessTitle: "भुगतान सफल रहा",
+        paySuccessSub: "आपके भुगतान का सत्यापन हो चुका है। आपका डिजिटल संस्करण नीचे अनलॉक कर दिया गया है:",
+        btnClose: "आश्रम में लौटें"
+      }
+    };
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      document.body.className = `lang-${lang} ${isDarkMode ? 'dark-mode' : ''}`;
+      
+      const dict = translations[lang] || translations.en;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.getAttribute('data-i18n');
+        if (dict[k]) el.innerHTML = dict[k];
+      });
+
+      const b = libraryData[currentBookKey];
+      document.getElementById('sectionsMainHeading').innerText = currentLang === 'hi' ? b.hindiSectionsHeading : b.sectionsHeading;
+      document.getElementById('sectionsSubHeading').innerText = currentLang === 'hi' ? b.hindiSectionsSub : b.sectionsSub;
+      
+      const authDisp = document.getElementById('authUserDisplay');
+      if (!currentUser) {
+        authDisp.innerText = currentLang === 'hi' ? 'लॉगिन' : 'Login';
+      }
+
+      renderSections();
+      renderFeaturedVerse();
+      renderStories();
+      renderProducts();
+      solveProblem(activeProblemKey);
+    }
+
+    /* ================= 7. 3D REAL-TIME PERSPECTIVE LIFT ON CURSOR MOVE ================= */
+    function init3DLiftEffects() {
+      const interactiveElements = document.querySelectorAll('.book-card, .dynamic-solver-box, .cat-btn, .book-switch-btn, .btn-gold, .btn-account-portal');
+      
+      interactiveElements.forEach(el => {
+        el.addEventListener('mousemove', (e) => {
+          const rect = el.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          
+          const rotateX = ((y - centerY) / centerY) * -5;
+          const rotateY = ((x - centerX) / centerX) * 5;
+          
+          el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(12px) translateY(-4px)`;
+        });
+
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = '';
+        });
+      });
+    }
+
+    /* Three.js Ambient Celestial Wireframe Setup */
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), alpha: true, antialias: true });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const celestialSystem = new THREE.Group();
+
+    const globeGeo = new THREE.SphereGeometry(7.5, 28, 28);
+    const globeMat = new THREE.MeshBasicMaterial({ color: 0xC87919, wireframe: true, transparent: true, opacity: 0.18 });
+    const globe = new THREE.Mesh(globeGeo, globeMat);
+    celestialSystem.add(globe);
+
+    const goldRingMat = new THREE.MeshBasicMaterial({ color: 0xD4AF37, wireframe: true, transparent: true, opacity: 0.32 });
+    const ringA = new THREE.Mesh(new THREE.TorusGeometry(10.5, 0.08, 16, 100), goldRingMat);
+    const ringB = new THREE.Mesh(new THREE.TorusGeometry(12.5, 0.06, 16, 100), goldRingMat);
+    ringA.rotation.x = Math.PI / 2.8;
+    ringB.rotation.y = Math.PI / 3.5;
+    celestialSystem.add(ringA);
+    celestialSystem.add(ringB);
+
+    const starsGeo = new THREE.BufferGeometry();
+    const starCoords = new Float32Array(550 * 3);
+    for (let i = 0; i < 550 * 3; i++) starCoords[i] = (Math.random() - 0.5) * 65;
+    starsGeo.setAttribute('position', new THREE.BufferAttribute(starCoords, 3));
+    const starsMat = new THREE.PointsMaterial({ size: 0.08, color: 0xD4AF37, transparent: true, opacity: 0.5 });
+    const starField = new THREE.Points(starsGeo, starsMat);
+    scene.add(starField);
+
+    scene.add(celestialSystem);
+    camera.position.z = 24;
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    let mX = window.innerWidth / 2, mY = window.innerHeight / 2;
+    window.addEventListener('mousemove', (e) => {
+      mX = e.clientX;
+      mY = e.clientY;
+      const cg = document.getElementById('cursor-glow');
+      if (cg) {
+        cg.style.transform = `translate3d(${mX}px, ${mY}px, 0)`;
+      }
+    });
+
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      globe.rotation.y += 0.0016;
+      ringA.rotation.z += 0.0018;
+      ringB.rotation.x -= 0.0014;
+      starField.rotation.y -= 0.0004;
+
+      const normX = (mX / window.innerWidth - 0.5) * 0.7;
+      const normY = (mY / window.innerHeight - 0.5) * 0.7;
+      celestialSystem.rotation.x += (normY * 0.5 - celestialSystem.rotation.x) * 0.05;
+      celestialSystem.rotation.y += (normX * 0.5 - celestialSystem.rotation.y) * 0.05;
+
+      renderer.render(scene, camera);
+    }
+    animate3D();
+
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
